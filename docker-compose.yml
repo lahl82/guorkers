@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - 5432:5432
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      app_net:
+        aliases:
+          - db-host
+
+  backend:
+    build: ./inmobiliaria_api
+    volumes:
+      - ./inmobiliaria_api:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      - RAILS_ENV=${RAILS_ENV}
+    networks:
+      app_net:
+        aliases:
+          - backend-host
+
+  frontend:
+    build: ./angular_front
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      app_net:
+        aliases:
+          - frontend-host
+
+networks:
+  app_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.99.0/24
+
+volumes:
+  db_data:
