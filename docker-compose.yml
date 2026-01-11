@@ -24,6 +24,8 @@ services:
       - db
     environment:
       - RAILS_ENV=${RAILS_ENV}
+      - RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
+      - DB_HOST=${DB_HOST}
     networks:
       app_net:
         aliases:
