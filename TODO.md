@@ -14,18 +14,18 @@ Actualizar este archivo a medida que se resuelvan los ítems.
 - **Archivo:** `inmobiliaria_api/app/controllers/appointments_controller.rb`
 - **Estado:** ⏳ Pendiente
 
-### C-2: Renombrar `admin` → `seller` en el código ✅ Decisión tomada
+### C-2: Renombrar `admin` → `seller` en el código
 - **Decisión:** `admin` pasa a llamarse `seller`. `assistant` se mantiene.
   `root` y `support` son roles de plataforma (sin company_id fijo).
   MODELING.MD actualizado a versión 3.0 con el nuevo sistema de roles.
-- **Pendiente de implementar en código:**
-  - `inmobiliaria_api/app/models/user.rb` → cambiar `admin` por `seller` en `ROLES`
-  - `angular_front/src/app/models/user-role.enum.ts` → ya tiene `Seller` ✅, agregar `Assistant`, `Root`, `Support`
-  - `angular_front/src/app/store/store-context.service.ts` → `isBusinessOwner()` revisar si sigue correcto
-  - Cualquier referencia a `.admin?` o `has_role?(:admin)` en controllers → cambiar a `.seller?`
-  - Migración para renombrar el valor en la columna `role_mask` si es bitmask
-    (verificar si es necesario según implementación actual)
-- **Estado:** ⏳ Pendiente de implementar
+- **Implementado 2026-03-01:**
+  - `user.rb` → `ROLES = %i[root support seller assistant customer]` ✅
+  - `user.rb` → validación de company usa `has_any_role?(:seller, :assistant)` ✅
+  - `registrations_controller.rb` → asigna `:seller` al registrar proveedor ✅
+  - `user-role.enum.ts` → enum completo: `Root`, `Support`, `Seller`, `Assistant`, `Customer` ✅
+  - No requirió migración de BD: `seller` ocupa el mismo bit que `admin` en el bitmask ✅
+  - Vistas `view :admin` en blueprints son identificadores internos, no roles → se dejan igual ✅
+- **Estado:** ✅ Resuelto
 
 ---
 
@@ -157,4 +157,6 @@ Actualizar este archivo a medida que se resuelvan los ítems.
 
 ## ✅ Resueltos
 
-_(mover ítems aquí cuando se completen, con fecha y breve descripción de la solución)_
+### C-2: Roles — renombrar `admin` → `seller` (2026-03-01)
+`seller` reemplaza a `admin` en el mismo bit del bitmask. Sin migración de BD.
+Enum del frontend completado con los 5 roles definitivos.
