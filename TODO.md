@@ -8,11 +8,13 @@ Actualizar este archivo a medida que se resuelvan los ítems.
 ## 🔴 Críticos
 
 ### C-1: Concurrencia en creación de citas (Caso C2)
-- **Problema:** La implementación hace `count → check → save` sin transacción ni row lock.
-  Con dos requests simultáneos se puede superar `max_requests`.
-- **Solución:** Envolver el bloque en `AppointmentSlot.with_lock` + `ActiveRecord::Base.transaction`.
+- **Problema:** La implementación hacía `count → check → save` sin transacción ni row lock.
+  Con dos requests simultáneos se podía superar `max_requests`.
+- **Solución implementada 2026-03-01:** `slot.with_lock` dentro de `ActiveRecord::Base.transaction`.
+  El row lock bloquea el slot en PG hasta que la transacción confirma, garantizando
+  que el count y el save sean atómicos.
 - **Archivo:** `inmobiliaria_api/app/controllers/appointments_controller.rb`
-- **Estado:** ⏳ Pendiente
+- **Estado:** ✅ Resuelto
 
 ### C-2: Renombrar `admin` → `seller` en el código
 - **Decisión:** `admin` pasa a llamarse `seller`. `assistant` se mantiene.
@@ -97,9 +99,12 @@ Actualizar este archivo a medida que se resuelvan los ítems.
 ## 🟢 Menores / Secciones no implementadas aún
 
 ### N-1: Cancelación de cita desde "Mis citas" (Caso C3)
-- **Descripción:** El cliente debe poder cancelar una cita activa (`user_canceled`).
-  Esto libera el cupo automáticamente (el count solo cuenta `active`).
-- **Estado:** 🔄 Por implementar (próximo en cola)
+- **Implementado 2026-03-01:**
+  - Backend: acción `cancel` en `AppointmentsController` con `may_cancel_by_user?` + `cancel_by_user!`
+  - Ruta: `PATCH /appointments/:id/cancel`
+  - Frontend: `cancelAppointment(id)` en `AppointmentsService`
+  - UI: botón "Cancelar" con confirm + spinner solo en citas `active`; recarga lista tras éxito
+- **Estado:** ✅ Resuelto
 
 ### N-2a: Caso A5 — Seller gestiona colaboradores (Assistants)
 - **Descripción:** Pantalla para que el seller busque usuarios por email, los asocie
@@ -156,6 +161,12 @@ Actualizar este archivo a medida que se resuelvan los ítems.
 ---
 
 ## ✅ Resueltos
+
+### N-1: Cancelación de cita desde "Mis citas" (2026-03-01)
+Botón "Cancelar" solo para citas `active`. Backend con row lock implícito en AASM. Frontend con confirm + spinner.
+
+### C-1: Concurrencia en creación de citas (2026-03-01)
+`slot.with_lock` dentro de `ActiveRecord::Base.transaction`. Atómico a nivel PG.
 
 ### C-2: Roles — renombrar `admin` → `seller` (2026-03-01)
 `seller` reemplaza a `admin` en el mismo bit del bitmask. Sin migración de BD.
