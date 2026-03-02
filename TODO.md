@@ -160,6 +160,80 @@ Actualizar este archivo a medida que se resuelvan los ítems.
 
 ---
 
+## 🧪 Tests (RSpec — Backend)
+
+> El frontend no se testea con unit tests. La estrategia es: RSpec sólido en backend
+> + E2E selectivo (Playwright/Cypress) para flujos críticos en el futuro.
+> Revisar y actualizar specs existentes que puedan estar desactualizadas.
+
+### T-1: Modelo `User` — roles y bitmask
+- Que `seller?`, `assistant?`, `customer?`, `root?`, `support?` funcionen correctamente
+- Que `has_any_role?` sea correcto con combinaciones
+- Que la validación de `company` se exija solo para `seller` y `assistant`
+- Que `assign_default_role` asigne `customer` a un usuario nuevo
+- Que `add_role` y `remove_role` manipulen el bitmask correctamente
+- **Archivo:** `spec/models/user_spec.rb`
+- **Estado:** ⏳ Pendiente
+
+### T-2: Modelo `Appointment` — máquina de estados AASM
+- Que el estado inicial sea `active`
+- Transiciones válidas: `active → arrived`, `active → missed`, `active → user_canceled`, `active → seller_canceled`
+- Transiciones inválidas: `active → attended` directo (inconsistencia M-2 pendiente de corregir)
+- Estados terminales no tienen transiciones salientes
+- **Archivo:** `spec/models/appointment_spec.rb`
+- **Estado:** ⏳ Pendiente
+
+### T-3: Modelo `AppointmentSlot` — validaciones y estados
+- Que `starting` deba ser futuro
+- Que `starting` no pueda ser mayor a 30 días
+- Que `max_requests` y `duration` sean obligatorios
+- Estados AASM: `active → suspended → active`
+- **Archivo:** `spec/models/appointment_slot_spec.rb`
+- **Estado:** ⏳ Pendiente
+
+### T-4: `AppointmentsController#create` — casos de negocio críticos
+- ✅ Crea cita correctamente con datos válidos
+- ❌ Falla si el slot no existe
+- ❌ Falla si el slot está suspendido
+- ❌ Falla si el slot ya pasó
+- ❌ Falla si el cupo está lleno (`max_requests` superado)
+- ❌ Falla si el usuario ya tiene una cita activa en ese slot
+- ❌ Falla si no hay sesión (401)
+- 🔒 Concurrencia: dos requests simultáneos no superan `max_requests`
+- **Archivo:** `spec/requests/appointments_spec.rb`
+- **Estado:** ⏳ Pendiente
+
+### T-5: `AppointmentsController#cancel` — cancelación
+- ✅ Cancela correctamente una cita `active` del usuario
+- ❌ Falla si la cita no pertenece al usuario
+- ❌ Falla si la cita no está en estado `active` (ej: ya `user_canceled`)
+- ❌ Falla si no hay sesión (401)
+- **Archivo:** `spec/requests/appointments_spec.rb`
+- **Estado:** ⏳ Pendiente
+
+### T-6: `AppointmentsController#index` — listado de citas
+- ✅ Devuelve solo las citas del usuario autenticado
+- ✅ No devuelve citas de otros usuarios
+- ❌ Falla si no hay sesión (401)
+- **Archivo:** `spec/requests/appointments_spec.rb`
+- **Estado:** ⏳ Pendiente
+
+### T-7: `ServicesController#appointment_slots` — slots disponibles para un servicio
+- ✅ Devuelve solo slots activos y futuros vinculados al servicio
+- ✅ Incluye `current_requests` en la respuesta
+- ✅ No devuelve slots pasados ni suspendidos
+- **Archivo:** `spec/requests/services_spec.rb`
+- **Estado:** ⏳ Pendiente
+
+### T-8: `AppointmentSlotsController` — guardanes de edición y eliminación (M-3, M-4)
+- ❌ No permite editar un slot que ya tiene citas asociadas
+- ❌ No permite eliminar un slot que ya tiene citas asociadas
+- ✅ Permite editar/eliminar si no tiene citas
+- **Archivo:** `spec/requests/appointment_slots_spec.rb`
+- **Estado:** ⏳ Pendiente (implementar guardanes primero — ver M-3 y M-4)
+
+---
+
 ## ✅ Resueltos
 
 ### N-1: Cancelación de cita desde "Mis citas" (2026-03-01)
