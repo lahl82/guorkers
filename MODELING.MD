@@ -278,10 +278,12 @@ Un usuario reserva un turno.
 - Service activo.
 - Company activa.
 - No se ha superado `max_requests`.
+- El usuario no tiene ya una cita activa en ese mismo slot (un usuario no puede ocupar dos cupos en el mismo turno).
 
 Debe existir control de concurrencia mediante transacción y bloqueo de fila para evitar sobre-reservas.
 
 Si no hay cupo disponible → la operación falla.
+Si el usuario ya tiene una cita activa en ese slot → la operación falla.
 
 ---
 
